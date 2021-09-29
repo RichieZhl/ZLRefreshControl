@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '9.0'
+
+target 'ZLRefreshControl_Example' do
+  pod 'ZLRefreshControl', :path => '../'
+
+  target 'ZLRefreshControl_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
