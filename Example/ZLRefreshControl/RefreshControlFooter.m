@@ -17,7 +17,7 @@
 
 @implementation RefreshControlFooter
 
-+ (instancetype)headerWithRefreshingTarget:(id)target refreshingAction:(SEL)action {
++ (instancetype)footerWithRefreshingTarget:(id)target refreshingAction:(SEL)action {
     RefreshControlFooter *header = [RefreshControlFooter new];
     [header addRefreshTarget:target action:action];
     return header;

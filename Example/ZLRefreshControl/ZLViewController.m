@@ -48,14 +48,10 @@
     [scrollView addSubview:view];
     scrollView.contentSize = view.frame.size;
     
-    RefreshControlHeader *header = [[RefreshControlHeader alloc] init];
+    RefreshControlHeader *header = [RefreshControlHeader headerWithRefreshingTarget:self refreshingAction:@selector(loadData)];
     scrollView.rcHeader = header;
     
-    RefreshControlFooter *footer = [[RefreshControlFooter alloc] init];
-    scrollView.rcFooter = footer;
-    
-    [header addRefreshTarget:self action:@selector(loadData)];
-    [footer addRefreshTarget:self action:@selector(loadMore)];
+    scrollView.rcFooter = [RefreshControlFooter footerWithRefreshingTarget:self refreshingAction:@selector(loadMore)];
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [header beginRefreshing];
