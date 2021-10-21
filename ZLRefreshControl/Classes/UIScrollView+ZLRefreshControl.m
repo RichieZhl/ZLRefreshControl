@@ -110,6 +110,17 @@
 @implementation ZLRefreshControlBaseHeader
 
 - (void)beginRefreshing {
+    if (self.state != ZLRefreshControlStateWillRefreshing) {
+        CGFloat offsetY = self.layoutHeight - self.scrollView.contentInset.top;
+        self.scrollView.contentSize = CGSizeMake(self.scrollView.bounds.size.width, offsetY);
+        
+        [self.scrollView setContentOffset:CGPointMake(self.scrollView.contentOffset.x, -offsetY) animated:NO];
+        self.state = ZLRefreshControlStateWillRefreshing;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self beginRefreshing];
+        });
+        return;
+    }
     CGFloat offsetY = self.layoutHeight - self.scrollView.contentInset.top;
     
     [self.scrollView setContentOffset:CGPointMake(self.scrollView.contentOffset.x, -offsetY) animated:YES];
@@ -121,6 +132,9 @@
 
 - (void)endRefreshing {
     [self.scrollView setContentOffset:CGPointMake(0, -self.scrollView.contentInset.top) animated:YES];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self.scrollView setContentOffset:CGPointMake(0, -self.scrollView.contentInset.top) animated:YES];
+    });
 }
 
 - (void)scrollViewDidChanged {
@@ -165,6 +179,13 @@
 
 @implementation ZLRefreshControlBaseFooter
 
+- (void)setState:(ZLRefreshControlState)state {
+    if (self.scrollView.contentSize.height < self.scrollView.bounds.size.height) {
+        return;
+    }
+    [super setState:state];
+}
+
 - (void)beginRefreshing {
     
 }
@@ -174,12 +195,33 @@
     [self.scrollView setContentOffset:CGPointMake(self.scrollView.contentOffset.x, offsetHeight) animated:YES];
 }
 
+- (void)resetNoMoreData {
+    self.state = ZLRefreshControlStateIdle;
+}
+
+- (void)endRefreshingWithNoMoreData {
+    [self endRefreshing];
+    self.state = ZLRefreshControlStateNoMoreData;
+}
+
 - (void)scrollViewDidChanged {
     CGFloat offsetHeight = self.scrollView.contentSize.height - self.scrollView.frame.size.height + self.scrollView.contentInset.bottom;
     if (offsetHeight <= 0) {
         return;
     }
     CGFloat contentOffsetY = self.scrollView.contentOffset.y;
+    
+    if (self.state == ZLRefreshControlStateNoMoreData) {
+        [self.scrollView sendSubviewToBack:self];
+        self.hidden = NO;
+        
+        CGFloat offsetY = contentOffsetY - (offsetHeight + self.layoutHeight);
+        if (offsetY < 0) {
+            offsetY = 0;
+        }
+        self.frame = CGRectMake(0, offsetY + self.scrollView.contentInset.bottom + self.scrollView.contentSize.height, self.scrollView.frame.size.width, self.layoutHeight);
+        return;
+    }
     if (contentOffsetY > offsetHeight) {
         [self.scrollView sendSubviewToBack:self];
         self.hidden = NO;
@@ -189,6 +231,14 @@
             offsetY = 0;
         }
         self.frame = CGRectMake(0, offsetY + self.scrollView.contentInset.bottom + self.scrollView.contentSize.height, self.scrollView.frame.size.width, self.layoutHeight);
+        
+        if (self.scrollView.isDecelerating) {
+            [self.scrollView setContentOffset:CGPointMake(self.scrollView.contentOffset.x, offsetHeight + self.layoutHeight - self.scrollView.contentInset.bottom) animated:YES];
+            
+            self.pullProgress = 1;
+            self.state = ZLRefreshControlStateRefreshing;
+            return;
+        }
         
         if (offsetY > 0) {
             if (self.state == ZLRefreshControlStateRefreshing) {

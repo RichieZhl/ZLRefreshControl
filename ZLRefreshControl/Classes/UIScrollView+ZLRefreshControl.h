@@ -14,7 +14,8 @@ typedef NS_ENUM(NSInteger, ZLRefreshControlState) {
     ZLRefreshControlStateIdle = 0,
     ZLRefreshControlStatePulling,
     ZLRefreshControlStateWillRefreshing,
-    ZLRefreshControlStateRefreshing
+    ZLRefreshControlStateRefreshing,
+    ZLRefreshControlStateNoMoreData
 };
 
 @interface ZLRefreshControlBaseComponent : UIView
@@ -46,6 +47,10 @@ typedef NS_ENUM(NSInteger, ZLRefreshControlState) {
 
 
 @interface ZLRefreshControlBaseFooter : ZLRefreshControlBaseComponent
+
+- (void)resetNoMoreData;
+
+- (void)endRefreshingWithNoMoreData;
 
 @end
 

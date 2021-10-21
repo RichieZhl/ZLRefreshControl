@@ -12,6 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface RefreshControlHeader : ZLRefreshControlBaseHeader
 
++ (instancetype)headerWithRefreshingTarget:(id)target refreshingAction:(SEL)action;
+
 @end
 
 NS_ASSUME_NONNULL_END
